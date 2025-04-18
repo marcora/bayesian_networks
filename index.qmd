@@ -1,0 +1,259 @@
+---
+title: "Bayesian networks"
+format:
+  html:
+    toc: true
+    df-print: kable
+---
+
+# Bayesian networks
+
+This notebook demonstrates Bayesian networks using the `bnlearn` and `gRain` packages in R, converting the examples from the original `pgmpy` Python notebook: <https://github.com/pgmpy/pgmpy_notebook/blob/master/notebooks/2.%20Bayesian%20Networks.ipynb>.
+
+## Setup environment
+
+```{r}
+#| output: false
+library(tidyverse)
+library(dagitty)
+library(bnlearn)
+library(gRain)
+```
+
+## What is a Bayesian network?
+
+A Bayesian network is a probabilistic graphical model (a type of statistical model) that represents a set of random variables and their conditional dependencies via a directed acyclic graph (DAG). Bayesian networks are mostly used when we want to represent causal relationship between the random variables. Bayesian networks are parameterized using conditional probability distributions (CPD). Each node in the network is parameterized using $P(\rm{node} \mid \rm{parents}(\rm{node}))$ where $\rm{parents}(\rm{node})$ represents the parents of the node in the network.
+
+We can take the example of the student model:
+
+![](images/clipboard-912080913.png)
+
+In `bnlearn` (as in `pgmpy`) we define the network structure and the CPDs separately and then associate them with the structure. Here's an example for defining the above model:
+
+```{r}
+dag <- model2network("[D][I][G|D:I][S|I][L|G]")
+
+graphviz.plot(dag)
+```
+
+or, using `dagitty`:
+
+```{r}
+g <- dagitty("dag {
+    D -> G
+    I -> G
+    I -> S
+    G -> L
+  }")
+
+dag <- model2network(convert(g, to = "bnlearn"))
+
+plot(g)
+```
+
+CPD for Difficulty (D):
+
+```{r}
+cptD_wide <-
+  tribble(
+    ~d_0,  ~d_1,
+    0.6,   0.4
+  )
+
+cptD_long <- cptD_wide %>% 
+  pivot_longer(
+    cols = starts_with("d_"), 
+    names_to  = "D", 
+    values_to = "prob")
+
+cptD <- xtabs(prob ~ D, data = cptD_long)
+
+cptD_wide
+```
+
+CPD for Intelligence (I):
+
+```{r}
+cptI_wide <-
+  tribble(
+    ~i_0,  ~i_1,
+    0.7,   0.3
+  )
+
+cptI_long <- cptI_wide %>% 
+  pivot_longer(
+    cols = starts_with("i_"), 
+    names_to  = "I", 
+    values_to = "prob")
+
+cptI <- xtabs(prob ~ I, data = cptI_long)
+
+cptI_wide
+```
+
+CPD for Grade (G):
+
+```{r}
+cptG_wide <-
+  tribble(
+    ~I,     ~D,    ~g_0,  ~g_1,  ~g_2,
+    "i_0", "d_0",  0.30,  0.40,  0.30,
+    "i_0", "d_1",  0.05,  0.25,  0.70,
+    "i_1", "d_0",  0.90,  0.08,  0.02,
+    "i_1", "d_1",  0.50,  0.30,  0.20
+  )
+
+cptG_long <- cptG_wide %>% 
+  pivot_longer(
+    cols = starts_with("g_"), 
+    names_to  = "G", 
+    values_to = "prob")
+
+cptG <- xtabs(prob ~ G + I + D, data = cptG_long)
+
+cptG_wide
+```
+
+CPD for SAT (S):
+
+```{r}
+cptS_wide <- tribble(
+  ~I,      ~s_0,  ~s_1,
+  "i_0",   0.95,  0.05,
+  "i_1",   0.20,  0.80
+)
+
+cptS_long <- cptS_wide %>% 
+  pivot_longer(
+    cols = starts_with("s_"),
+    names_to  = "S",
+    values_to = "prob"
+  )
+
+cptS <- xtabs(prob ~ S + I, data = cptS_long)
+
+cptS_wide
+```
+
+CPD for Letter (L):
+
+```{r}
+cptL_wide <- tribble(
+  ~G,      ~l_0,  ~l_1,
+  "g_0",     0.10,  0.90,
+  "g_1",     0.40,  0.60,
+  "g_2",     0.99,  0.01
+)
+
+cptL_long <- cptL_wide %>% 
+  pivot_longer(
+    cols = starts_with("l_"),
+    names_to  = "L",
+    values_to = "prob")
+
+cptL <- xtabs(prob ~ L + G, data = cptL_long)
+
+cptL_wide
+```
+
+Fit the network:
+
+```{r}
+bn_fit <- custom.fit(dag, dist = list(
+  D = cptD,
+  I = cptI,
+  G = cptG,
+  S = cptS,
+  L = cptL
+))
+
+graphviz.chart(bn_fit)
+```
+
+## Independencies in a Bayesian network
+
+Independencies implied by the structure of a Bayesian Network can be categorized in 2 types:
+
+1.  **Local Independencies:** Any variable in the network is independent of its non-descendents given its parents. Mathematically it can be written as:
+
+    $$
+    X\ \bot\ \rm{nondesc}(X) \mid \rm{parents}(X)
+    $$
+
+2.  **Global Independencies:** For discussing global independencies in Bayesian Networks we need to look at the various network structures possible. Starting with the case of 2 nodes, there are only 2 possible ways for it to be connected:
+
+![](images/clipboard-485762479.png)
+
+In the above two cases it is fairly obvious that change in any of the node will affect the other. For the first case we can take the example of $D \rightarrow G$. If the course is hard the probability of getting a higher grade decreases. For the second case we can take the example of $S \leftarrow I$. The probability of getting a good SAT score increases if the student is intelligent.
+
+Now, there are four possible ways of connection between 3 nodes:
+
+![](images/clipboard-3374317769.png)
+
+Now in the above cases we will see the flow of influence from A to C under various cases.
+
+1.  **Causal:** In the general case when we make any changes in the variable A, it will have effect of variable B (as we discussed above) and this change in B will change the values in C. One other possible case can be when B is observed i.e. we know the value of B. So, in this case any change in A won't affect B since we already know the value. And hence there won't be any change in C as it depends only on B. Mathematically we can say that: (A⊥C\|B).
+
+2.  **Evidential:** Similarly in this case also observing B renders C independent of A. Otherwise when B is not observed the influence flows from A to C. Hence (A⊥C\|B).
+
+3.  **Common Evidence:** This case is a bit different from the others. When B is not observed any change in A reflects some change in B but not in C. Let's take the example of D→G←I. In this case if we increase the difficulty of the course the probability of getting a higher grade reduces but this has no effect on the intelligence of the student. But when B is observed let's say that the student got a good grade. Now if we increase the difficulty of the course this will increase the probability of the student to be intelligent since we already know that he got a good grade. Hence in this case (A⊥C) and (A⊥̸C\|B). This structure is also commonly known as V structure.
+
+4.  **Common Cause:** The influence flows from A to C when B is not observed. But when B is observed and change in A doesn't affect C since it's only dependent on B. Hence here also (A⊥C\|B).
+
+Let's not see a few examples for finding the independencies in a newtork using `bnlearn` and/or `dagitty`:
+
+```{r}
+# all the local independencies in the network
+impliedConditionalIndependencies(g, type = "basis.set")
+```
+
+```{r}
+paths(g, "D", setdiff(names(g), "D"))
+```
+
+## How is this Bayesian network representing the joint distribution over the variables?
+
+Till now we just have been considering that the Bayesian Network can represent the Joint Distribution without any proof. Now let's see how to compute the Joint Distribution from the Bayesian Network.
+
+From the chain rule of probabiliy we know that:
+
+$P(A,B) = P(A \mid B) \cdot P(B)$
+
+Now in this case:
+
+$P(D,I,G,L,S)=P(L \mid S,G,D,I) \cdot P(S \mid G,D,I) \cdot P(G \mid D,I) \cdot P(D \mid I) \cdot P(I)$
+
+Applying the local independence conditions in the above equation we will get:
+
+$P(D,I,G,L,S) = P(L \mid G) \cdot P(S \mid I) \cdot P(G \mid D,I) \cdot P(D) \cdot P(I)$
+
+From the above equation we can clearly see that the Joint Distribution over all the variables is just the product of all the CPDs in the network. Hence encoding the independencies in the Joint Distribution in a graph structure helped us in reducing the number of parameters that we need to store.
+
+## Inference using a Bayesian network
+
+Compile the fitted model and perform queries:
+
+```{r}
+gr <- as.grain(bn_fit)
+# Marginal distribution of G
+querygrain(gr, nodes = "G")
+# Conditional P(G | D = Easy, I = Intelligent)
+gr_evi <- setEvidence(gr, evidence = list(D = "Easy", I = "Intelligent"))
+querygrain(gr_evi, nodes = "G")
+```
+
+Extract the most probable grade:
+
+```{r}
+# Without evidence
+margG <- querygrain(gr, nodes = "G")
+mapG  <- names(which.max(margG$G))
+# With evidence D and I
+margG_evi <- querygrain(gr_evi, nodes = "G")
+mapG_evi  <- names(which.max(margG_evi$G))
+list(mapG = mapG, mapG_evi = mapG_evi)
+```
+
+## Other methods for inference using a Bayesian network
+
+For larger or continuous models, consider approximate algorithms (belief propagation, sampling) via `gRain` or structure/parameter learning via `bnlearn::boot.strength`, `bnlearn::hc`, etc.
