@@ -200,15 +200,16 @@ Now in the above cases we will see the flow of influence from A to C under vario
 
 4.  **Common Cause:** The influence flows from A to C when B is not observed. But when B is observed and change in A doesn't affect C since it's only dependent on B. Hence here also (A⊥C\|B).
 
-Let's not see a few examples for finding the independencies in a newtork using `bnlearn` and/or `dagitty`:
+Let's now see a few examples for finding the independencies in a Bayesian newtork using `bnlearn` and/or `dagitty`:
 
 ```{r}
-# all the local independencies in the network
+# all local independencies in the DAG
 impliedConditionalIndependencies(g, type = "basis.set")
 ```
 
 ```{r}
-paths(g, "D", setdiff(names(g), "D"))
+# all paths in the DAG that include D
+paths(g, "D", setdiff(names(g), "D")) %>% as_tibble()
 ```
 
 ## How is this Bayesian network representing the joint distribution over the variables?
@@ -217,7 +218,7 @@ Till now we just have been considering that the Bayesian Network can represent t
 
 From the chain rule of probabiliy we know that:
 
-$P(A,B) = P(A \mid B) \cdot P(B)$
+$P(A,B) = P(A \mid B) \cdot P(B) = P(A \mid B) \cdot P(B)$
 
 Now in this case:
 

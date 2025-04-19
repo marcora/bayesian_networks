@@ -469,9 +469,9 @@ X\ \bot\ \rm{nondesc}(X) \mid \rm{parents}(X)
 <li><p><strong>Common Evidence:</strong> This case is a bit different from the others. When B is not observed any change in A reflects some change in B but not in C. Let’s take the example of D→G←I. In this case if we increase the difficulty of the course the probability of getting a higher grade reduces but this has no effect on the intelligence of the student. But when B is observed let’s say that the student got a good grade. Now if we increase the difficulty of the course this will increase the probability of the student to be intelligent since we already know that he got a good grade. Hence in this case (A⊥C) and (A⊥̸C|B). This structure is also commonly known as V structure.</p></li>
 <li><p><strong>Common Cause:</strong> The influence flows from A to C when B is not observed. But when B is observed and change in A doesn’t affect C since it’s only dependent on B. Hence here also (A⊥C|B).</p></li>
 </ol>
-<p>Let’s not see a few examples for finding the independencies in a newtork using <code>bnlearn</code> and/or <code>dagitty</code>:</p>
+<p>Let’s now see a few examples for finding the independencies in a Bayesian newtork using <code>bnlearn</code> and/or <code>dagitty</code>:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># all the local independencies in the network</span></span>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># all local independencies in the DAG</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">impliedConditionalIndependencies</span>(g, <span class="at">type =</span> <span class="st">"basis.set"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>D _||_ I, S
@@ -482,13 +482,37 @@ S _||_ D, G, L | I</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">paths</span>(g, <span class="st">"D"</span>, <span class="fu">setdiff</span>(<span class="fu">names</span>(g), <span class="st">"D"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>$paths
-[1] "D -&gt; G"           "D -&gt; G &lt;- I"      "D -&gt; G -&gt; L"      "D -&gt; G &lt;- I -&gt; S"
-
-$open
-[1] TRUE TRUE TRUE TRUE</code></pre>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># all paths in the DAG that include D</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">paths</span>(g, <span class="st">"D"</span>, <span class="fu">setdiff</span>(<span class="fu">names</span>(g), <span class="st">"D"</span>)) <span class="sc">%&gt;%</span> <span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="kable-table">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">paths</th>
+<th style="text-align: left;">open</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">D -&gt; G</td>
+<td style="text-align: left;">TRUE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">D -&gt; G &lt;- I</td>
+<td style="text-align: left;">TRUE</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">D -&gt; G -&gt; L</td>
+<td style="text-align: left;">TRUE</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">D -&gt; G &lt;- I -&gt; S</td>
+<td style="text-align: left;">TRUE</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </section>
@@ -496,7 +520,7 @@ $open
 <h2 class="anchored" data-anchor-id="how-is-this-bayesian-network-representing-the-joint-distribution-over-the-variables">How is this Bayesian network representing the joint distribution over the variables?</h2>
 <p>Till now we just have been considering that the Bayesian Network can represent the Joint Distribution without any proof. Now let’s see how to compute the Joint Distribution from the Bayesian Network.</p>
 <p>From the chain rule of probabiliy we know that:</p>
-<p><span class="math inline">\(P(A,B) = P(A \mid B) \cdot P(B)\)</span></p>
+<p><span class="math inline">\(P(A,B) = P(A \mid B) \cdot P(B) = P(A \mid B) \cdot P(B)\)</span></p>
 <p>Now in this case:</p>
 <p><span class="math inline">\(P(D,I,G,L,S)=P(L \mid S,G,D,I) \cdot P(S \mid G,D,I) \cdot P(G \mid D,I) \cdot P(D \mid I) \cdot P(I)\)</span></p>
 <p>Applying the local independence conditions in the above equation we will get:</p>
@@ -507,18 +531,18 @@ $open
 <h2 class="anchored" data-anchor-id="inference-using-a-bayesian-network">Inference using a Bayesian network</h2>
 <p>Compile the fitted model and perform queries:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>gr <span class="ot">&lt;-</span> <span class="fu">as.grain</span>(bn_fit)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Marginal distribution of G</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">querygrain</span>(gr, <span class="at">nodes =</span> <span class="st">"G"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>gr <span class="ot">&lt;-</span> <span class="fu">as.grain</span>(bn_fit)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Marginal distribution of G</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">querygrain</span>(gr, <span class="at">nodes =</span> <span class="st">"G"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$G
 G
    g_0    g_1    g_2 
 0.3620 0.2884 0.3496 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Conditional P(G | D = Easy, I = Intelligent)</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>gr_evi <span class="ot">&lt;-</span> <span class="fu">setEvidence</span>(gr, <span class="at">evidence =</span> <span class="fu">list</span>(<span class="at">D =</span> <span class="st">"Easy"</span>, <span class="at">I =</span> <span class="st">"Intelligent"</span>))</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">querygrain</span>(gr_evi, <span class="at">nodes =</span> <span class="st">"G"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Conditional P(G | D = Easy, I = Intelligent)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>gr_evi <span class="ot">&lt;-</span> <span class="fu">setEvidence</span>(gr, <span class="at">evidence =</span> <span class="fu">list</span>(<span class="at">D =</span> <span class="st">"Easy"</span>, <span class="at">I =</span> <span class="st">"Intelligent"</span>))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">querygrain</span>(gr_evi, <span class="at">nodes =</span> <span class="st">"G"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$G
 G
@@ -528,13 +552,13 @@ G
 </div>
 <p>Extract the most probable grade:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Without evidence</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>margG <span class="ot">&lt;-</span> <span class="fu">querygrain</span>(gr, <span class="at">nodes =</span> <span class="st">"G"</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>mapG  <span class="ot">&lt;-</span> <span class="fu">names</span>(<span class="fu">which.max</span>(margG<span class="sc">$</span>G))</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># With evidence D and I</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>margG_evi <span class="ot">&lt;-</span> <span class="fu">querygrain</span>(gr_evi, <span class="at">nodes =</span> <span class="st">"G"</span>)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>mapG_evi  <span class="ot">&lt;-</span> <span class="fu">names</span>(<span class="fu">which.max</span>(margG_evi<span class="sc">$</span>G))</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(<span class="at">mapG =</span> mapG, <span class="at">mapG_evi =</span> mapG_evi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Without evidence</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>margG <span class="ot">&lt;-</span> <span class="fu">querygrain</span>(gr, <span class="at">nodes =</span> <span class="st">"G"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>mapG  <span class="ot">&lt;-</span> <span class="fu">names</span>(<span class="fu">which.max</span>(margG<span class="sc">$</span>G))</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># With evidence D and I</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>margG_evi <span class="ot">&lt;-</span> <span class="fu">querygrain</span>(gr_evi, <span class="at">nodes =</span> <span class="st">"G"</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>mapG_evi  <span class="ot">&lt;-</span> <span class="fu">names</span>(<span class="fu">which.max</span>(margG_evi<span class="sc">$</span>G))</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(<span class="at">mapG =</span> mapG, <span class="at">mapG_evi =</span> mapG_evi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$mapG
 [1] "g_0"
