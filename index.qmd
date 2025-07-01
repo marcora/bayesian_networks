@@ -258,3 +258,59 @@ list(mapG = mapG, mapG_evi = mapG_evi)
 ## Other methods for inference using a Bayesian network
 
 For larger or continuous models, consider approximate algorithms (belief propagation, sampling) via `gRain` or structure/parameter learning via `bnlearn::boot.strength`, `bnlearn::hc`, etc.
+
+
+```{r}
+library(nimble)
+
+# Define the Bayesian model
+code <- nimbleCode({
+  D ~ dbern(0.05)           # Prior: P(D = 1) = 0.05
+  Tprob[1] <- 0.1           # P(T = 1 | D = 0)
+  Tprob[2] <- 0.8           # P(T = 1 | D = 1)
+  T ~ dbern(Tprob[D + 1])   # Likelihood: P(T | D)
+})
+
+# Now we observe T = 1 (positive test)
+constants <- list()
+data <- list(T = 1)
+inits <- list(D = 0)
+
+# Build and compile the model
+model <- nimbleModel(code, constants = constants, data = data, inits = inits)
+Cmodel <- compileNimble(model)
+
+# Configure MCMC to monitor D
+conf <- configureMCMC(model, monitors = "D")
+mcmc <- buildMCMC(conf)
+Cmcmc <- compileNimble(mcmc, project = model)
+
+# Run MCMC
+samples <- runMCMC(Cmcmc, niter = 10000)
+
+# Estimate P(D = 1 | T = 1)
+posterior_prob_D1 <- mean(samples[, "D"])
+posterior_prob_D1
+```
+
+```{r}
+library(gRain)
+
+# 1. Define CPTs
+cpt_D <- cptable(~ D, values = c(0.95, 0.05), levels = c("healthy", "diseased"))
+cpt_T_given_D <- cptable(~ T | D, values = c(0.9, 0.1, 0.2, 0.8), levels = c("negative", "positive"))
+
+# 2. Compile CPTs into a grain object
+plist <- compileCPT(list(cpt_D, cpt_T_given_D))
+bn <- grain(plist)
+
+# 3. Set evidence: T = positive
+bn_evid <- setEvidence(bn, evidence = list(T = "positive"))
+
+# 4. Sample from P(D | T = 1)
+set.seed(123)
+samples <- simulate.grain(bn_evid, n = 100000)
+
+# 5. Estimate posterior
+mean(samples$D == "diseased")  # ~0.296
+```
