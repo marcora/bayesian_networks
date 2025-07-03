@@ -573,6 +573,7 @@ $mapG_evi
 <section id="other-methods-for-inference-using-a-bayesian-network" class="level2">
 <h2 class="anchored" data-anchor-id="other-methods-for-inference-using-a-bayesian-network">Other methods for inference using a Bayesian network</h2>
 <p>For larger or continuous models, consider approximate algorithms (belief propagation, sampling) via <code>gRain</code> or structure/parameter learning via <code>bnlearn::boot.strength</code>, <code>bnlearn::hc</code>, etc.</p>
+<p>Or use <code>nimble</code> for probabilistic programming/Bayesian inference:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nimble)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -665,7 +666,7 @@ binary sampler (1)
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>posterior_prob_D1 <span class="ot">&lt;-</span> <span class="fu">mean</span>(samples[, <span class="st">"D"</span>])</span>
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>posterior_prob_D1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.287</code></pre>
+<pre><code>[1] 0.2918</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -689,7 +690,7 @@ binary sampler (1)
 <span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Estimate posterior</span></span>
 <span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(samples<span class="sc">$</span>D <span class="sc">==</span> <span class="st">"diseased"</span>)  <span class="co"># ~0.296</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.2985</code></pre>
+<pre><code>[1] 0.2945</code></pre>
 </div>
 </div>
 </section>

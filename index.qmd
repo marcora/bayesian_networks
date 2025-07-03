@@ -259,6 +259,7 @@ list(mapG = mapG, mapG_evi = mapG_evi)
 
 For larger or continuous models, consider approximate algorithms (belief propagation, sampling) via `gRain` or structure/parameter learning via `bnlearn::boot.strength`, `bnlearn::hc`, etc.
 
+Or use `nimble` for probabilistic programming/Bayesian inference:
 
 ```{r}
 library(nimble)
