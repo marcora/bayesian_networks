@@ -315,3 +315,15 @@ samples <- simulate.grain(bn_evid, n = 100000)
 # 5. Estimate posterior
 mean(samples$D == "diseased")  # ~0.296
 ```
+
+## Examples: Election forecasting
+
+-   **Statistical model**: A probability distribution of future outcomes given the past (data/training set)
+
+    ![](images/clipboard-3913781057.png)
+
+<https://youtu.be/Dtk5ghFmhz8>
+
+![![](images/clipboard-188262550.png)](images/clipboard-4101952589.png)
+
+![![](images/clipboard-4276526127.png)](images/clipboard-4138466632.png)

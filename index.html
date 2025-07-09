@@ -118,6 +118,7 @@ window.Quarto = {
   <li><a href="#how-is-this-bayesian-network-representing-the-joint-distribution-over-the-variables" id="toc-how-is-this-bayesian-network-representing-the-joint-distribution-over-the-variables" class="nav-link" data-scroll-target="#how-is-this-bayesian-network-representing-the-joint-distribution-over-the-variables">How is this Bayesian network representing the joint distribution over the variables?</a></li>
   <li><a href="#inference-using-a-bayesian-network" id="toc-inference-using-a-bayesian-network" class="nav-link" data-scroll-target="#inference-using-a-bayesian-network">Inference using a Bayesian network</a></li>
   <li><a href="#other-methods-for-inference-using-a-bayesian-network" id="toc-other-methods-for-inference-using-a-bayesian-network" class="nav-link" data-scroll-target="#other-methods-for-inference-using-a-bayesian-network">Other methods for inference using a Bayesian network</a></li>
+  <li><a href="#examples-election-forecasting" id="toc-examples-election-forecasting" class="nav-link" data-scroll-target="#examples-election-forecasting">Examples: Election forecasting</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -666,7 +667,7 @@ binary sampler (1)
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>posterior_prob_D1 <span class="ot">&lt;-</span> <span class="fu">mean</span>(samples[, <span class="st">"D"</span>])</span>
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>posterior_prob_D1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.2918</code></pre>
+<pre><code>[1] 0.2904</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -692,6 +693,26 @@ binary sampler (1)
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.2945</code></pre>
 </div>
+</div>
+</section>
+<section id="examples-election-forecasting" class="level2">
+<h2 class="anchored" data-anchor-id="examples-election-forecasting">Examples: Election forecasting</h2>
+<ul>
+<li><p><strong>Statistical model</strong>: A probability distribution of future outcomes given the past (data/training set)</p>
+<p><img src="images/clipboard-3913781057.png" class="img-fluid"></p></li>
+</ul>
+<p><a href="https://youtu.be/Dtk5ghFmhz8" class="uri">https://youtu.be/Dtk5ghFmhz8</a></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/clipboard-4101952589.png" class="img-fluid figure-img"></p>
+<figcaption><img src="images/clipboard-188262550.png" class="img-fluid figure-img"></figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/clipboard-4138466632.png" class="img-fluid figure-img"></p>
+<figcaption><img src="images/clipboard-4276526127.png" class="img-fluid figure-img"></figcaption>
+</figure>
 </div>
 </section>
 </section>
